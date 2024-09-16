@@ -6,7 +6,6 @@ on:
    - cron: "0 */5 * * *"  # Every 05 Hrs
 
 env:
-  GITHUB_TOKEN: "${{ secrets.TOOLPACKS }}"
   HF_TOKEN: "${{ secrets.HF_TOKEN }}"
   RCLONE_CF_R2_PUB: "${{ secrets.RCLONE_CF_R2_PUB }}"
   HF_PUB_REPO: "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots"
@@ -28,7 +27,7 @@ jobs:
       - name: Install CoreUtils & Deps
         run: |
           #presets
-          set -x ; set +e
+          set +x ; set +e
           #-------------#     
           export DEBIAN_FRONTEND="noninteractive"
           sudo apt update -y -qq
@@ -123,7 +122,7 @@ jobs:
       - name: Install CoreUtils & Deps
         run: |
           #presets
-          set -x ; set +e
+          set +x ; set +e
           #-------------#     
           export DEBIAN_FRONTEND="noninteractive"
           sudo apt update -y -qq
@@ -218,7 +217,7 @@ jobs:
       - name: Install CoreUtils & Deps
         run: |
           #presets
-          set -x ; set +e
+          set +x ; set +e
           #-------------#     
           export DEBIAN_FRONTEND="noninteractive"
           sudo apt update -y -qq
@@ -313,7 +312,7 @@ jobs:
       - name: Install CoreUtils & Deps
         run: |
           #presets
-          set -x ; set +e
+          set +x ; set +e
           #-------------#     
           export DEBIAN_FRONTEND="noninteractive"
           sudo apt update -y -qq
@@ -411,7 +410,7 @@ jobs:
       - name: Install CoreUtils & Deps
         run: |
           #presets
-          set -x ; set +e
+          set +x ; set +e
           #-------------#     
           export DEBIAN_FRONTEND="noninteractive"
           sudo apt update -y -qq
