@@ -99,7 +99,7 @@ jobs:
           #Commit & Push
            git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/arm64_v8a_Android) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
            git branch -a || git show-branch
-           git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -109,7 +109,7 @@ jobs:
 #------------------------------------------------------------------------------------#
   sync-arm64-Linux:
     runs-on: ubuntu-latest
-    needs: [sync-arm64v8a-Android]
+    #needs: [sync-arm64v8a-Android]
     steps:
 
       - name: Checkout repository
@@ -194,7 +194,7 @@ jobs:
           #Commit & Push
            git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/aarch64_arm64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
            git branch -a || git show-branch
-           git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -204,7 +204,7 @@ jobs:
 #------------------------------------------------------------------------------------#
   sync-x86-64-Linux:
     runs-on: ubuntu-latest
-    needs: [sync-arm64-Linux]
+    #needs: [sync-arm64-Linux]
     steps:
 
       - name: Checkout repository
@@ -289,7 +289,7 @@ jobs:
           #Commit & Push
            git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x86_64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
            git branch -a || git show-branch
-           git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -299,7 +299,7 @@ jobs:
 #------------------------------------------------------------------------------------#
   sync-x64-Windows:
     runs-on: ubuntu-latest
-    needs: [sync-x86-64-Linux]
+    #needs: [sync-x86-64-Linux]
     steps:
 
       - name: Checkout repository
@@ -384,7 +384,7 @@ jobs:
           #Commit & Push
            git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
            git branch -a || git show-branch
-           git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -481,7 +481,7 @@ jobs:
           #Commit & Push
            git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/METADATA.json) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
            git branch -a || git show-branch
-           git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 
