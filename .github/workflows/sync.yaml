@@ -15,7 +15,6 @@ jobs:
 #------------------------------------------------------------------------------------#
   sync-arm64v8a-Android:
     runs-on: ubuntu-latest
-    needs: [check-post]
     steps:
 
       - name: Checkout repository
