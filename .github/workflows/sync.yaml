@@ -23,6 +23,15 @@ jobs:
           path: main
           filter: "blob:none"
 
+
+      - name: Debloat Runner
+        run: |
+          #Presets
+          set +x ; set +e
+          #--------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+        continue-on-error: true
+
       - name: Install CoreUtils & Deps
         run: |
           #presets
@@ -117,6 +126,15 @@ jobs:
         with:
           path: main
           filter: "blob:none"
+
+
+      - name: Debloat Runner
+        run: |
+          #Presets
+          set +x ; set +e
+          #--------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+        continue-on-error: true
 
       - name: Install CoreUtils & Deps
         run: |
@@ -213,6 +231,15 @@ jobs:
           path: main
           filter: "blob:none"
 
+
+      - name: Debloat Runner
+        run: |
+          #Presets
+          set +x ; set +e
+          #--------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+        continue-on-error: true
+
       - name: Install CoreUtils & Deps
         run: |
           #presets
@@ -307,6 +334,15 @@ jobs:
         with:
           path: main
           filter: "blob:none"
+
+
+      - name: Debloat Runner
+        run: |
+          #Presets
+          set +x ; set +e
+          #--------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+        continue-on-error: true
 
       - name: Install CoreUtils & Deps
         run: |
@@ -405,6 +441,15 @@ jobs:
         with:
           path: main
           filter: "blob:none"
+
+
+      - name: Debloat Runner
+        run: |
+          #Presets
+          set +x ; set +e
+          #--------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+        continue-on-error: true
 
       - name: Install CoreUtils & Deps
         run: |
