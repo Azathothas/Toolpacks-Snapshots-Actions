@@ -1,0 +1,527 @@
+name: 📦♻️ Sync ♻️📦
+
+on:
+  workflow_dispatch:
+  schedule:
+   - cron: "0 */5 * * *"  # Every 05 Hrs
+
+env:
+  GITHUB_TOKEN: "${{ secrets.TOOLPACKS }}"
+  HF_TOKEN: "${{ secrets.HF_TOKEN }}"
+  RCLONE_CF_R2_PUB: "${{ secrets.RCLONE_CF_R2_PUB }}"
+  HF_PUB_REPO: "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots"
+  R2_PUB_REPO: "https://pub.ajam.dev/repos/Azathothas/Toolpacks"
+jobs:
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+  sync-arm64v8a-Android:
+    runs-on: ubuntu-latest
+    needs: [check-post]
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set -x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes jq git git-lfs moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+          #Do again, sometimes fails
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes git git-lfs jq moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+        continue-on-error: true
+
+      - name: Setup Env
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          #tmp
+          SYSTMP="$(dirname $(mktemp -u))" && export SYSTMP="${SYSTMP}"
+          echo "SYSTMP=${SYSTMP}" >> "${GITHUB_ENV}"
+          #-------------#
+          mkdir -p "$HOME/bin"
+          ##Setup rClone
+          mkdir -p "$HOME/.config/rclone"
+          echo "${{ secrets.RCLONE_CF_R2_PUB }}" > "$HOME/.config/rclone/rclone.conf"
+          export RCLONE_STATS="120s" ; echo "RCLONE_STATS=$RCLONE_STATS" >> "${GITHUB_ENV}"
+          ##Setup Repo
+           sudo curl -A "${USER_AGENT}" -qfsSL "https://bin.ajam.dev/$(uname -m)/huggingface-cli" -o "/usr/local/bin/huggingface-cli" && sudo chmod +x "/usr/local/bin/huggingface-cli"
+          #Configure git
+           sudo apt-get install git-lfs -y -qq
+           git config --global "credential.helper" store
+           git config --global "user.email" "AjamX101@gmail.com"
+           git config --global "user.name" "Azathothas"
+          #Login
+           huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+          #Clone
+           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
+           echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
+           git lfs install
+           huggingface-cli lfs-enable-largefiles "."
+          popd >/dev/null 2>&1
+          ##User-Agent
+          USER_AGENT="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/User-Agents/ua_chrome_macos_latest.txt')" && export USER_AGENT="$USER_AGENT"
+          echo "USER_AGENT=$USER_AGENT" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -A "${USER_AGENT}" -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_bb_tools.sh")
+        continue-on-error: true
+
+      - name: Sync (bin.ajam.dev/arm64_v8a_Android)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+          #DL
+           mkdir -p "${TOOLPACKS_BIN}/arm64_v8a_Android" && cd "${TOOLPACKS_BIN}/arm64_v8a_Android"
+           rclone sync "r2:/bin/arm64_v8a_Android/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+          #Metadata           
+           find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/arm64_v8a_Android|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/arm64_v8a_Android|g'
+           find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+          #Sync
+           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+           git pull origin main ; git lfs track "arm64_v8a_Android/**"
+           BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
+          #Commit & Push
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/arm64_v8a_Android) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git branch -a || git show-branch
+           git pull origin main ; git push origin main
+          popd >/dev/null 2>&1
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+  sync-arm64-Linux:
+    runs-on: ubuntu-latest
+    needs: [sync-arm64v8a-Android]
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set -x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes jq git git-lfs moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+          #Do again, sometimes fails
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes git git-lfs jq moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+        continue-on-error: true
+
+      - name: Setup Env
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          #tmp
+          SYSTMP="$(dirname $(mktemp -u))" && export SYSTMP="${SYSTMP}"
+          echo "SYSTMP=${SYSTMP}" >> "${GITHUB_ENV}"
+          #-------------#
+          mkdir -p "$HOME/bin"
+          ##Setup rClone
+          mkdir -p "$HOME/.config/rclone"
+          echo "${{ secrets.RCLONE_CF_R2_PUB }}" > "$HOME/.config/rclone/rclone.conf"
+          export RCLONE_STATS="120s" ; echo "RCLONE_STATS=$RCLONE_STATS" >> "${GITHUB_ENV}"
+          ##Setup Repo
+           sudo curl -A "${USER_AGENT}" -qfsSL "https://bin.ajam.dev/$(uname -m)/huggingface-cli" -o "/usr/local/bin/huggingface-cli" && sudo chmod +x "/usr/local/bin/huggingface-cli"
+          #Configure git
+           sudo apt-get install git-lfs -y -qq
+           git config --global "credential.helper" store
+           git config --global "user.email" "AjamX101@gmail.com"
+           git config --global "user.name" "Azathothas"
+          #Login
+           huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+          #Clone
+           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
+           echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
+           git lfs install
+           huggingface-cli lfs-enable-largefiles "."
+          popd >/dev/null 2>&1
+          ##User-Agent
+          USER_AGENT="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/User-Agents/ua_chrome_macos_latest.txt')" && export USER_AGENT="$USER_AGENT"
+          echo "USER_AGENT=$USER_AGENT" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -A "${USER_AGENT}" -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_bb_tools.sh")
+        continue-on-error: true
+
+      - name: Sync (bin.ajam.dev/aarch64_arm64_Linux)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+          #DL
+           mkdir -p "${TOOLPACKS_BIN}/aarch64_arm64_Linux" && cd "${TOOLPACKS_BIN}/aarch64_arm64_Linux"
+           rclone sync "r2:/bin/aarch64_arm64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+          #Metadata           
+           find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/aarch64_arm64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/aarch64_arm64_Linux|g'
+           find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+          #Sync
+           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+           git pull origin main ; git lfs track "aarch64_arm64_Linux/**"
+           BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
+          #Commit & Push
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/aarch64_arm64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git branch -a || git show-branch
+           git pull origin main ; git push origin main
+          popd >/dev/null 2>&1
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+  sync-x86-64-Linux:
+    runs-on: ubuntu-latest
+    needs: [sync-arm64-Linux]
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set -x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes jq git git-lfs moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+          #Do again, sometimes fails
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes git git-lfs jq moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+        continue-on-error: true
+
+      - name: Setup Env
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          #tmp
+          SYSTMP="$(dirname $(mktemp -u))" && export SYSTMP="${SYSTMP}"
+          echo "SYSTMP=${SYSTMP}" >> "${GITHUB_ENV}"
+          #-------------#
+          mkdir -p "$HOME/bin"
+          ##Setup rClone
+          mkdir -p "$HOME/.config/rclone"
+          echo "${{ secrets.RCLONE_CF_R2_PUB }}" > "$HOME/.config/rclone/rclone.conf"
+          export RCLONE_STATS="120s" ; echo "RCLONE_STATS=$RCLONE_STATS" >> "${GITHUB_ENV}"
+          ##Setup Repo
+           sudo curl -A "${USER_AGENT}" -qfsSL "https://bin.ajam.dev/$(uname -m)/huggingface-cli" -o "/usr/local/bin/huggingface-cli" && sudo chmod +x "/usr/local/bin/huggingface-cli"
+          #Configure git
+           sudo apt-get install git-lfs -y -qq
+           git config --global "credential.helper" store
+           git config --global "user.email" "AjamX101@gmail.com"
+           git config --global "user.name" "Azathothas"
+          #Login
+           huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+          #Clone
+           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
+           echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
+           git lfs install
+           huggingface-cli lfs-enable-largefiles "."
+          popd >/dev/null 2>&1
+          ##User-Agent
+          USER_AGENT="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/User-Agents/ua_chrome_macos_latest.txt')" && export USER_AGENT="$USER_AGENT"
+          echo "USER_AGENT=$USER_AGENT" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -A "${USER_AGENT}" -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_bb_tools.sh")
+        continue-on-error: true
+
+      - name: Sync (bin.ajam.dev/x86_64_Linux)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+          #DL
+           mkdir -p "${TOOLPACKS_BIN}/x86_64_Linux" && cd "${TOOLPACKS_BIN}/x86_64_Linux"
+           rclone sync "r2:/bin/x86_64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+          #Metadata           
+           find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x86_64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x86_64_Linux|g'
+           find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+          #Sync
+           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+           git pull origin main ; git lfs track "x86_64_Linux/**"
+           BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
+          #Commit & Push
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x86_64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git branch -a || git show-branch
+           git pull origin main ; git push origin main
+          popd >/dev/null 2>&1
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+  sync-x64-Windows:
+    runs-on: ubuntu-latest
+    needs: [sync-x86-64-Linux]
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set -x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes jq git git-lfs moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+          #Do again, sometimes fails
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes git git-lfs jq moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+        continue-on-error: true
+
+      - name: Setup Env
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          #tmp
+          SYSTMP="$(dirname $(mktemp -u))" && export SYSTMP="${SYSTMP}"
+          echo "SYSTMP=${SYSTMP}" >> "${GITHUB_ENV}"
+          #-------------#
+          mkdir -p "$HOME/bin"
+          ##Setup rClone
+          mkdir -p "$HOME/.config/rclone"
+          echo "${{ secrets.RCLONE_CF_R2_PUB }}" > "$HOME/.config/rclone/rclone.conf"
+          export RCLONE_STATS="120s" ; echo "RCLONE_STATS=$RCLONE_STATS" >> "${GITHUB_ENV}"
+          ##Setup Repo
+           sudo curl -A "${USER_AGENT}" -qfsSL "https://bin.ajam.dev/$(uname -m)/huggingface-cli" -o "/usr/local/bin/huggingface-cli" && sudo chmod +x "/usr/local/bin/huggingface-cli"
+          #Configure git
+           sudo apt-get install git-lfs -y -qq
+           git config --global "credential.helper" store
+           git config --global "user.email" "AjamX101@gmail.com"
+           git config --global "user.name" "Azathothas"
+          #Login
+           huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+          #Clone
+           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
+           echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
+           git lfs install
+           huggingface-cli lfs-enable-largefiles "."
+          popd >/dev/null 2>&1
+          ##User-Agent
+          USER_AGENT="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/User-Agents/ua_chrome_macos_latest.txt')" && export USER_AGENT="$USER_AGENT"
+          echo "USER_AGENT=$USER_AGENT" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -A "${USER_AGENT}" -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_bb_tools.sh")
+        continue-on-error: true
+
+      - name: Sync (bin.ajam.dev/)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+          #DL
+           mkdir -p "${TOOLPACKS_BIN}/" && cd "${TOOLPACKS_BIN}/"
+           rclone sync "r2:/bin//" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+          #Metadata           
+           find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/|g'
+           find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+          #Sync
+           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+           git pull origin main ; git lfs track "x64_Windows/**"
+           BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
+          #Commit & Push
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git branch -a || git show-branch
+           git pull origin main ; git push origin main
+          popd >/dev/null 2>&1
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+  sync-all:
+    runs-on: ubuntu-latest
+    needs: [sync-arm64v8a-Android, sync-arm64-Linux, sync-x86-64-Linux, sync-x64-Windows]
+    permissions:
+      contents: write
+          
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set -x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes jq git git-lfs moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+          #Do again, sometimes fails
+          sudo apt install 7zip b3sum bc binutils binutils-aarch64-linux-gnu coreutils curl dos2unix fdupes git git-lfs jq moreutils wget -y -qq
+          sudo apt-get install apt-transport-https apt-utils ca-certificates binutils binutils-aarch64-linux-gnu coreutils dos2unix fdupes git git-lfs gnupg2 jq moreutils p7zip-full rename rsync software-properties-common texinfo tmux upx util-linux wget -y -qq 2>/dev/null ; sudo apt-get update -y 2>/dev/null
+        continue-on-error: true
+
+      - name: Setup Env
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          #tmp
+          SYSTMP="$(dirname $(mktemp -u))" && export SYSTMP="${SYSTMP}"
+          echo "SYSTMP=${SYSTMP}" >> "${GITHUB_ENV}"
+          #-------------#
+          mkdir -p "$HOME/bin"
+          ##Setup rClone
+          mkdir -p "$HOME/.config/rclone"
+          echo "${{ secrets.RCLONE_CF_R2_PUB }}" > "$HOME/.config/rclone/rclone.conf"
+          export RCLONE_STATS="120s" ; echo "RCLONE_STATS=$RCLONE_STATS" >> "${GITHUB_ENV}"
+          ##Setup Repo
+           sudo curl -A "${USER_AGENT}" -qfsSL "https://bin.ajam.dev/$(uname -m)/huggingface-cli" -o "/usr/local/bin/huggingface-cli" && sudo chmod +x "/usr/local/bin/huggingface-cli"
+          #Configure git
+           sudo apt-get install git-lfs -y -qq
+           git config --global "credential.helper" store
+           git config --global "user.email" "AjamX101@gmail.com"
+           git config --global "user.name" "Azathothas"
+          #Login
+           huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+          #Clone
+           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
+           echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
+           git lfs install
+           huggingface-cli lfs-enable-largefiles "."
+          popd >/dev/null 2>&1
+          ##User-Agent
+          USER_AGENT="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/User-Agents/ua_chrome_macos_latest.txt')" && export USER_AGENT="$USER_AGENT"
+          echo "USER_AGENT=$USER_AGENT" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -A "${USER_AGENT}" -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_bb_tools.sh")
+        continue-on-error: true
+
+      - name: Sync (bin.ajam.dev/METADATA.json)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+          #DL
+           rclone copyto "r2:/bin/METADATA.json" "${TOOLPACKS_BIN}/METADATA.json" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+          #Metadata
+           find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/|g'
+           find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+          #Sync
+           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+           git pull origin main ; git lfs track "x64_Windows/**"
+           BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
+          #Commit & Push
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/METADATA.json) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git branch -a || git show-branch
+           git pull origin main ; git push origin main
+          popd >/dev/null 2>&1
+        continue-on-error: true
+
+      - name: Get DateTime
+        run: |
+          # Date Time
+          NEPALI_TIME=$(TZ='Asia/Kathmandu' date +'%Y-%m-%d (%I:%M:%S %p)')
+          echo "NEPALI_TIME=$NEPALI_TIME" >> $GITHUB_ENV
+        continue-on-error: true
+
+      - name: Add to Repo (bin.ajam.dev/METADATA.json)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          ##Metadata
+          #https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/aarch64_arm64_Linux/
+          mkdir -p "$GITHUB_WORKSPACE/main/aarch64_arm64_Linux"
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/aarch64_arm64_Linux/METADATA.json?download=true" -o "$GITHUB_WORKSPACE/main/aarch64_arm64_Linux/METADATA.json"
+          #https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/arm64_v8a_Android/
+          mkdir -p "$GITHUB_WORKSPACE/main/arm64_v8a_Android"
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/arm64_v8a_Android/METADATA.json?download=true" -o "$GITHUB_WORKSPACE/main/arm64_v8a_Android/METADATA.json"
+          mkdir -p "$GITHUB_WORKSPACE/main/x64_Windows"
+          #https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x64_Windows/
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x64_Windows/METADATA.json?download=true" -o "$GITHUB_WORKSPACE/main/x64_Windows/METADATA.json"
+          #https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x86_64_Linux/
+          mkdir -p "$GITHUB_WORKSPACE/main/x86_64_Linux"
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x86_64_Linux/METADATA.json?download=true" -o "$GITHUB_WORKSPACE/main/x86_64_Linux/METADATA.json"
+          ##https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/METADATA.json?download=true" -o "$GITHUB_WORKSPACE/main/METADATA.json"
+        continue-on-error: true          
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          repository: ./main
+          commit_user_name: Azathothas
+          commit_user_email: AjamX101@gmail.com
+          commit_message: "✅ Updated (Metadata) 🛍️ <-- ${{ env.NEPALI_TIME }} ⌚"
+          #push_options: '--force'
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
