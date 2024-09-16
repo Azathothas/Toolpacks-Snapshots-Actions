@@ -401,24 +401,24 @@ jobs:
           bash <(curl -A "${USER_AGENT}" -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_bb_tools.sh")
         continue-on-error: true
 
-      - name: Sync (bin.ajam.dev/)
+      - name: Sync (bin.ajam.dev/x64_Windows)
         run: |
           #presets
           set +x ; set +e
           #-------------#
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
-           mkdir -p "${TOOLPACKS_BIN}/" && cd "${TOOLPACKS_BIN}/"
-           rclone sync "r2:/bin//" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           mkdir -p "${TOOLPACKS_BIN}/x64_Windows" && cd "${TOOLPACKS_BIN}/x64_Windows"
+           rclone sync "r2:/bin/x64_Windows/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
           #Metadata           
-           find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/|g'
-           find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+           find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x64_Windows|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x64_Windows|g'
+           find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main ; git lfs track "x64_Windows/**"
+           git pull origin main ; git lfs track "x86_64_Linux/**"
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
-           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x64_Windows) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
            git branch -a || git show-branch
            sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
           popd >/dev/null 2>&1
@@ -530,13 +530,6 @@ jobs:
           popd >/dev/null 2>&1
         continue-on-error: true
 
-      - name: Get DateTime
-        run: |
-          # Date Time
-          NEPALI_TIME=$(TZ='Asia/Kathmandu' date +'%Y-%m-%d (%I:%M:%S %p)')
-          echo "NEPALI_TIME=$NEPALI_TIME" >> $GITHUB_ENV
-        continue-on-error: true
-
       - name: Add to Repo (bin.ajam.dev/METADATA.json)
         run: |
           #presets
@@ -557,7 +550,22 @@ jobs:
           curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x86_64_Linux/METADATA.json?download=true" -o "$GITHUB_WORKSPACE/main/x86_64_Linux/METADATA.json"
           ##https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/
           curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/METADATA.json?download=true" -o "$GITHUB_WORKSPACE/main/METADATA.json"
-        continue-on-error: true          
+        continue-on-error: true
+
+      - name: Git Pull
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#      
+          cd "$GITHUB_WORKSPACE/main" && git pull origin main
+        continue-on-error: true
+
+      - name: Get DateTime
+        run: |
+          # Date Time
+          NEPALI_TIME="$(TZ='Asia/Kathmandu' date +'%Y-%m-%d (%I:%M:%S %p)')"
+          echo "NEPALI_TIME=$NEPALI_TIME" >> $GITHUB_ENV
+        continue-on-error: true
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
