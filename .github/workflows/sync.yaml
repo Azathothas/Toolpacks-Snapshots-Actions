@@ -97,7 +97,7 @@ jobs:
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
            mkdir -p "${TOOLPACKS_BIN}/arm64_v8a_Android" && cd "${TOOLPACKS_BIN}/arm64_v8a_Android"
-           rclone sync "r2:/bin/arm64_v8a_Android/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone sync "r2:/bin/arm64_v8a_Android/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
           #Metadata           
            find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/arm64_v8a_Android|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/arm64_v8a_Android|g'
            find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
@@ -201,7 +201,7 @@ jobs:
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
            mkdir -p "${TOOLPACKS_BIN}/aarch64_arm64_Linux" && cd "${TOOLPACKS_BIN}/aarch64_arm64_Linux"
-           rclone sync "r2:/bin/aarch64_arm64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone sync "r2:/bin/aarch64_arm64_Linux/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
           #Metadata           
            find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/aarch64_arm64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/aarch64_arm64_Linux|g'
            find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
@@ -305,7 +305,7 @@ jobs:
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
            mkdir -p "${TOOLPACKS_BIN}/x86_64_Linux" && cd "${TOOLPACKS_BIN}/x86_64_Linux"
-           rclone sync "r2:/bin/x86_64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone sync "r2:/bin/x86_64_Linux/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
           #Metadata           
            find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x86_64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x86_64_Linux|g'
            find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
@@ -409,13 +409,13 @@ jobs:
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
            mkdir -p "${TOOLPACKS_BIN}/x64_Windows" && cd "${TOOLPACKS_BIN}/x64_Windows"
-           rclone sync "r2:/bin/x64_Windows/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone sync "r2:/bin/x64_Windows/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
           #Metadata           
            find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x64_Windows|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x64_Windows|g'
            find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main ; git lfs track "x86_64_Linux/**"
+           git pull origin main ; git lfs track "x64_Windows/**"
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
            git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x64_Windows) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
@@ -521,7 +521,7 @@ jobs:
            find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main ; git lfs track "x64_Windows/**"
+           git pull origin main
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
            git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/METADATA.json) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
