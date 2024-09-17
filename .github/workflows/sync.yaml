@@ -3,7 +3,7 @@ name: 📦♻️ Sync ♻️📦
 on:
   workflow_dispatch:
   schedule:
-   - cron: "0 */5 * * *"  # Every 05 Hrs
+   - cron: "0 0 * * *"  # Every 24 Hrs (UTC 00:00)
 
 env:
   HF_TOKEN: "${{ secrets.HF_TOKEN }}"
