@@ -7,7 +7,7 @@
 
 - ### [PKG Managers](https://github.com/Azathothas/Toolpacks/blob/main/Docs/METADATA.md#metadata)
 > ```bash
-> !#Simply point to (only `download_url` is changed):
+> !#Simply point to this:
 >
 >
 > 
