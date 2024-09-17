@@ -30,6 +30,27 @@ jobs:
           set +x ; set +e
           #--------------#
           bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+          sudo docker image prune --all --force 2>/dev/null
+          sudo podman image prune --all --force 2>/dev/null
+          sudo rm -rf "/opt/ghc" 2>/dev/null
+          sudo rm -rf "/opt/google" 2>/dev/null
+          sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+          sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+          sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+          sudo rm -rf "/usr/local/n" 2>/dev/null
+          sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+          sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+          sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+          sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+          sudo rm -rf "/home/linuxbrew" 2>/dev/null
+          sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+          sudo rm -rf "/var/lib/gems" 2>/dev/null
+          find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          df -h "/" 2>/dev/null
         continue-on-error: true
 
       - name: Install CoreUtils & Deps
@@ -70,7 +91,8 @@ jobs:
           #Login
            huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
           #Clone
-           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+          pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --depth="1" --filter="blob:none" --no-checkout "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           git sparse-checkout set "." && git checkout
            TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
            echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
            git lfs install
@@ -96,19 +118,20 @@ jobs:
           #-------------#
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
+           git sparse-checkout add "./arm64_v8a_Android"
            mkdir -p "${TOOLPACKS_BIN}/arm64_v8a_Android" && cd "${TOOLPACKS_BIN}/arm64_v8a_Android"
-           rclone sync "r2:/bin/arm64_v8a_Android/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
-          #Metadata           
+           rclone sync "r2:/bin/arm64_v8a_Android/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
+          #Metadata
            find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/arm64_v8a_Android|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/arm64_v8a_Android|g'
            find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main ; git lfs track "arm64_v8a_Android/**"
+           git fetch origin main ; git lfs track "arm64_v8a_Android/**"
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
-           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/arm64_v8a_Android) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/arm64_v8a_Android) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]" ; df -h "/" 2>/dev/null
            git branch -a || git show-branch
-           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git fetch origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -134,6 +157,27 @@ jobs:
           set +x ; set +e
           #--------------#
           bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+          sudo docker image prune --all --force 2>/dev/null
+          sudo podman image prune --all --force 2>/dev/null
+          sudo rm -rf "/opt/ghc" 2>/dev/null
+          sudo rm -rf "/opt/google" 2>/dev/null
+          sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+          sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+          sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+          sudo rm -rf "/usr/local/n" 2>/dev/null
+          sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+          sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+          sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+          sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+          sudo rm -rf "/home/linuxbrew" 2>/dev/null
+          sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+          sudo rm -rf "/var/lib/gems" 2>/dev/null
+          find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          df -h "/" 2>/dev/null
         continue-on-error: true
 
       - name: Install CoreUtils & Deps
@@ -174,7 +218,8 @@ jobs:
           #Login
            huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
           #Clone
-           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+          pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --depth="1" --filter="blob:none" --no-checkout "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           git sparse-checkout set "." && git checkout
            TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
            echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
            git lfs install
@@ -200,19 +245,20 @@ jobs:
           #-------------#
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
+           git sparse-checkout add "./aarch64_arm64_Linux"
            mkdir -p "${TOOLPACKS_BIN}/aarch64_arm64_Linux" && cd "${TOOLPACKS_BIN}/aarch64_arm64_Linux"
-           rclone sync "r2:/bin/aarch64_arm64_Linux/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone sync "r2:/bin/aarch64_arm64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata           
            find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/aarch64_arm64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/aarch64_arm64_Linux|g'
            find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main ; git lfs track "aarch64_arm64_Linux/**"
+           git fetch origin main ; git lfs track "aarch64_arm64_Linux/**"
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
-           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/aarch64_arm64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/aarch64_arm64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]" ; df -h "/" 2>/dev/null
            git branch -a || git show-branch
-           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git fetch origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -238,6 +284,27 @@ jobs:
           set +x ; set +e
           #--------------#
           bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+          sudo docker image prune --all --force 2>/dev/null
+          sudo podman image prune --all --force 2>/dev/null
+          sudo rm -rf "/opt/ghc" 2>/dev/null
+          sudo rm -rf "/opt/google" 2>/dev/null
+          sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+          sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+          sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+          sudo rm -rf "/usr/local/n" 2>/dev/null
+          sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+          sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+          sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+          sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+          sudo rm -rf "/home/linuxbrew" 2>/dev/null
+          sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+          sudo rm -rf "/var/lib/gems" 2>/dev/null
+          find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          df -h "/" 2>/dev/null
         continue-on-error: true
 
       - name: Install CoreUtils & Deps
@@ -278,7 +345,8 @@ jobs:
           #Login
            huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
           #Clone
-           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+          pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --depth="1" --filter="blob:none" --no-checkout "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           git sparse-checkout set "." && git checkout
            TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
            echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
            git lfs install
@@ -304,19 +372,20 @@ jobs:
           #-------------#
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
+           git sparse-checkout add "./x86_64_Linux"
            mkdir -p "${TOOLPACKS_BIN}/x86_64_Linux" && cd "${TOOLPACKS_BIN}/x86_64_Linux"
-           rclone sync "r2:/bin/x86_64_Linux/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone sync "r2:/bin/x86_64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata           
            find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x86_64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x86_64_Linux|g'
            find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main ; git lfs track "x86_64_Linux/**"
+           git fetch origin main ; git lfs track "x86_64_Linux/**"
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
-           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x86_64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x86_64_Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]" ; df -h "/" 2>/dev/null
            git branch -a || git show-branch
-           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git fetch origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -342,6 +411,27 @@ jobs:
           set +x ; set +e
           #--------------#
           bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+          sudo docker image prune --all --force 2>/dev/null
+          sudo podman image prune --all --force 2>/dev/null
+          sudo rm -rf "/opt/ghc" 2>/dev/null
+          sudo rm -rf "/opt/google" 2>/dev/null
+          sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+          sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+          sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+          sudo rm -rf "/usr/local/n" 2>/dev/null
+          sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+          sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+          sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+          sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+          sudo rm -rf "/home/linuxbrew" 2>/dev/null
+          sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+          sudo rm -rf "/var/lib/gems" 2>/dev/null
+          find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          df -h "/" 2>/dev/null
         continue-on-error: true
 
       - name: Install CoreUtils & Deps
@@ -382,7 +472,8 @@ jobs:
           #Login
            huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
           #Clone
-           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+          pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --depth="1" --filter="blob:none" --no-checkout "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           git sparse-checkout set "." && git checkout
            TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
            echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
            git lfs install
@@ -408,19 +499,20 @@ jobs:
           #-------------#
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
+           git sparse-checkout add "./x64_Windows"
            mkdir -p "${TOOLPACKS_BIN}/x64_Windows" && cd "${TOOLPACKS_BIN}/x64_Windows"
-           rclone sync "r2:/bin/x64_Windows/" "." --exclude="*.7z" --exclude="*.upx" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone sync "r2:/bin/x64_Windows/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata           
            find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x64_Windows|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x64_Windows|g'
            find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main ; git lfs track "x64_Windows/**"
+           git fetch origin main ; git lfs track "x64_Windows/**"
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
-           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x64_Windows) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/x64_Windows) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]" ; df -h "/" 2>/dev/null
            git branch -a || git show-branch
-           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git fetch origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 #------------------------------------------------------------------------------------#
@@ -449,6 +541,27 @@ jobs:
           set +x ; set +e
           #--------------#
           bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+          sudo docker image prune --all --force 2>/dev/null
+          sudo podman image prune --all --force 2>/dev/null
+          sudo rm -rf "/opt/ghc" 2>/dev/null
+          sudo rm -rf "/opt/google" 2>/dev/null
+          sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+          sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+          sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+          sudo rm -rf "/usr/local/n" 2>/dev/null
+          sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+          sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+          sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+          sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+          sudo rm -rf "/home/linuxbrew" 2>/dev/null
+          sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+          sudo rm -rf "/var/lib/gems" 2>/dev/null
+          find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          df -h "/" 2>/dev/null
         continue-on-error: true
 
       - name: Install CoreUtils & Deps
@@ -489,7 +602,8 @@ jobs:
           #Login
            huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
           #Clone
-           pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --filter="blob:none" --depth="1" "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+          pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --depth="1" --filter="blob:none" --no-checkout "https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots" && cd "./Toolpacks-Snapshots"
+           git sparse-checkout set "." && git checkout
            TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
            echo "TOOLPACKS_BIN=$TOOLPACKS_BIN" >> "${GITHUB_ENV}"
            git lfs install
@@ -515,18 +629,18 @@ jobs:
           #-------------#
           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
           #DL
-           rclone copyto "r2:/bin/METADATA.json" "${TOOLPACKS_BIN}/METADATA.json" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress
+           rclone copyto "r2:/bin/METADATA.json" "${TOOLPACKS_BIN}/METADATA.json" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata
            find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/|g'
            find "${TOOLPACKS_BIN}/" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
           #Sync
            pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
-           git pull origin main
+           git fetch origin main
            BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
           #Commit & Push
-           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/METADATA.json) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git add --all --verbose && git commit -m "[+] Snapshot (bin.ajam.dev/METADATA.json) $(TZ='UTC' date +'%Y_%m_%d')]" ; df -h "/" 2>/dev/null
            git branch -a || git show-branch
-           sleep "$((RANDOM % 61 + 60))" ; git pull origin main ; git push origin main
+           sleep "$((RANDOM % 61 + 60))" ; git fetch origin main ; git push origin main
           popd >/dev/null 2>&1
         continue-on-error: true
 
