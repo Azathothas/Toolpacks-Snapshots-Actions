@@ -8,6 +8,9 @@
 - ### [PKG Managers](https://github.com/Azathothas/Toolpacks/blob/main/Docs/METADATA.md#metadata)
 > ```bash
 > !#Simply point to this:
+> [+] ROOT
+> "https://raw.githubusercontent.com/Azathothas/Toolpacks-Snapshots-Actions/main/METADATA.json"
+>  
 > [+] aarch64-Linux 
 > "https://raw.githubusercontent.com/Azathothas/Toolpacks-Snapshots-Actions/main/aarch64_arm64_Linux/METADATA.json"
 > [+] arm64-v8a-Android
@@ -18,3 +21,4 @@
 > "https://raw.githubusercontent.com/Azathothas/Toolpacks-Snapshots-Actions/main/x86_64_Linux/METADATA.json"
 > #only the value of `download_url` is changed, rest is the same.
 > ```
+> - [HF](https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots): [https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/blob/main/README.md#pkg-managers](https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/blob/main/README.md#pkg-managers)
