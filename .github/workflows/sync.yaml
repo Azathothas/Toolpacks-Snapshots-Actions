@@ -141,7 +141,7 @@ jobs:
 #------------------------------------------------------------------------------------#
   sync-arm64-Linux:
     runs-on: ubuntu-latest
-    #needs: [sync-arm64v8a-Android]
+    needs: [sync-arm64v8a-Android]
     steps:
 
       - name: Checkout repository
@@ -268,7 +268,7 @@ jobs:
 #------------------------------------------------------------------------------------#
   sync-x86-64-Linux:
     runs-on: ubuntu-latest
-    #needs: [sync-arm64-Linux]
+    needs: [sync-arm64-Linux]
     steps:
 
       - name: Checkout repository
@@ -395,7 +395,7 @@ jobs:
 #------------------------------------------------------------------------------------#
   sync-x64-Windows:
     runs-on: ubuntu-latest
-    #needs: [sync-x86-64-Linux]
+    needs: [sync-x86-64-Linux]
     steps:
 
       - name: Checkout repository
