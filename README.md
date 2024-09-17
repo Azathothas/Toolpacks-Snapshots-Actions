@@ -16,9 +16,9 @@
 > [+] arm64-v8a-Android
 > "https://raw.githubusercontent.com/Azathothas/Toolpacks-Snapshots-Actions/main/arm64_v8a_Android/METADATA.json"
 > [+] X86_64-Linux
-> "https://raw.githubusercontent.com/Azathothas/Toolpacks-Snapshots-Actions/main/x64_Windows/METADATA.json"
-> [+] AMD64-Windows
 > "https://raw.githubusercontent.com/Azathothas/Toolpacks-Snapshots-Actions/main/x86_64_Linux/METADATA.json"
+> [+] AMD64-Windows
+> "https://raw.githubusercontent.com/Azathothas/Toolpacks-Snapshots-Actions/main/x64_Windows/METADATA.json"
 > #only the value of `download_url` is changed, rest is the same.
 > ```
 > - [HF](https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots): [https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/blob/main/README.md#pkg-managers](https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/blob/main/README.md#pkg-managers)
