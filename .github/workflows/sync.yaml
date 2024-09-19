@@ -120,7 +120,7 @@ jobs:
           #DL
            git sparse-checkout add "./arm64_v8a_Android"
            mkdir -p "${TOOLPACKS_BIN}/arm64_v8a_Android" && cd "${TOOLPACKS_BIN}/arm64_v8a_Android"
-           rclone sync "r2:/bin/arm64_v8a_Android/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
+           rclone sync "r2:/bin/arm64_v8a_Android/" "." --exclude="*.7z" --exclude="*.gz" --exclude="*.tar" --exclude="*.tgz" --exclude="*.zip" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata
            find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/arm64_v8a_Android|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/arm64_v8a_Android|g'
            find "${TOOLPACKS_BIN}/arm64_v8a_Android" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
@@ -247,7 +247,7 @@ jobs:
           #DL
            git sparse-checkout add "./aarch64_arm64_Linux"
            mkdir -p "${TOOLPACKS_BIN}/aarch64_arm64_Linux" && cd "${TOOLPACKS_BIN}/aarch64_arm64_Linux"
-           rclone sync "r2:/bin/aarch64_arm64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
+           rclone sync "r2:/bin/aarch64_arm64_Linux/" "." --exclude="*.7z" --exclude="*.gz" --exclude="*.tar" --exclude="*.tgz" --exclude="*.zip" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata           
            find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/aarch64_arm64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/aarch64_arm64_Linux|g'
            find "${TOOLPACKS_BIN}/aarch64_arm64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
@@ -374,7 +374,7 @@ jobs:
           #DL
            git sparse-checkout add "./x86_64_Linux"
            mkdir -p "${TOOLPACKS_BIN}/x86_64_Linux" && cd "${TOOLPACKS_BIN}/x86_64_Linux"
-           rclone sync "r2:/bin/x86_64_Linux/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
+           rclone sync "r2:/bin/x86_64_Linux/" "." --exclude="*.7z" --exclude="*.gz" --exclude="*.tar" --exclude="*.tgz" --exclude="*.zip" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata           
            find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x86_64_Linux|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x86_64_Linux|g'
            find "${TOOLPACKS_BIN}/x86_64_Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
@@ -501,7 +501,7 @@ jobs:
           #DL
            git sparse-checkout add "./x64_Windows"
            mkdir -p "${TOOLPACKS_BIN}/x64_Windows" && cd "${TOOLPACKS_BIN}/x64_Windows"
-           rclone sync "r2:/bin/x64_Windows/" "." --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
+           rclone sync "r2:/bin/x64_Windows/" "." --exclude="*.7z" --exclude="*.gz" --exclude="*.tar" --exclude="*.tgz" --exclude="*.zip" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
           #Metadata           
            find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x64_Windows|https://huggingface.co/datasets/Azathothas/Toolpacks-Snapshots/resolve/main/x64_Windows|g'
            find "${TOOLPACKS_BIN}/x64_Windows" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
