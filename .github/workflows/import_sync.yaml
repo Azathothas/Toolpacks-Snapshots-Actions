@@ -1,0 +1,430 @@
+name: 📦♻️ Import || Sync ♻️📦
+
+on:
+  workflow_dispatch:
+  schedule:
+   - cron: "30 18 * * 3-5"  # (12:15 AM NPT Mrng @ Thu, Fri & Sat)
+
+env:
+  HF_TOKEN: "${{ secrets.HF_TOKEN }}"
+  RCLONE_CF_R2_PUB: "${{ secrets.RCLONE_CF_R2_PUB }}"
+  HF_PUB_REPO: "https://huggingface.co/datasets/pkgforge/bincache"
+  R2_PUB_REPO: "https://pub.ajam.dev/repos/Azathothas/Toolpacks"
+jobs:
+#------------------------------------------------------------------------------------#
+  check_healthcheck_status:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Check Build Packages workflow status
+        id: check
+        env:
+            GITHUB_TOKEN: "${{ github.token }}"
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          STATUS="$(curl -qfsSL -H "Authorization: bearer ${GITHUB_TOKEN}" "https://api.github.com/repos/Azathothas/Toolpacks/actions/workflows/healthchecks_housekeeping.yaml/runs?status=in_progress" | jq '.total_count')" && export STATUS="${STATUS}"
+          if [ "${STATUS}" -eq "0" ]; then
+            echo "should_run=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "should_run=false" >> "${GITHUB_OUTPUT}"
+          fi
+        continue-on-error: true  
+#------------------------------------------------------------------------------------#
+  sync-aarch64-Linux:
+    if: needs.check_healthcheck_status.outputs.should_run == 'true'
+    needs: ["check_healthcheck_status"]
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      - name: Debloat Runner
+        run: |
+          #Presets
+          set +x ; set +e
+          #--------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+          sudo docker image prune --all --force 2>/dev/null
+          sudo podman image prune --all --force 2>/dev/null
+          sudo rm -rf "/opt/ghc" 2>/dev/null
+          sudo rm -rf "/opt/google" 2>/dev/null
+          sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+          sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+          sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+          sudo rm -rf "/usr/local/n" 2>/dev/null
+          sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+          sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+          sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+          sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+          sudo rm -rf "/home/linuxbrew" 2>/dev/null
+          sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+          sudo rm -rf "/var/lib/gems" 2>/dev/null
+          find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          df -h "/" 2>/dev/null
+        continue-on-error: true
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc coreutils curl dos2unix fdupes jq git git-lfs moreutils wget util-linux -y -qq
+          sudo apt install 7zip b3sum bc coreutils curl dos2unix fdupes jq git git-lfs moreutils wget util-linux -y -qq
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_dev_tools.sh")
+        continue-on-error: true
+
+      - name: Setup Env
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          #tmp
+          SYSTMP="$(dirname $(mktemp -u))" && export SYSTMP="${SYSTMP}"
+          echo "SYSTMP=${SYSTMP}" >> "${GITHUB_ENV}"
+          #-------------#
+          mkdir -p "${HOME}/bin"
+          ##Setup rClone
+          mkdir -p "${HOME}/.config/rclone"
+          echo "${{ secrets.RCLONE_CF_R2_PUB }}" > "${HOME}/.config/rclone/rclone.conf"
+          export RCLONE_STATS="120s" ; echo "RCLONE_STATS=${RCLONE_STATS}" >> "${GITHUB_ENV}"
+          ##Setup Repo
+           sudo curl -A "${USER_AGENT}" -qfsSL "https://bin.pkgforge.dev/$(uname -m)/huggingface-cli" -o "/usr/local/bin/huggingface-cli" && sudo chmod +x "/usr/local/bin/huggingface-cli"
+          #Configure git
+           sudo apt-get install git-lfs -y -qq
+           export GIT_TERMINAL_PROMPT="0"
+           echo "GIT_TERMINAL_PROMPT=${GIT_TERMINAL_PROMPT}" >> "${GITHUB_ENV}"
+           export GIT_ASKPASS="/bin/echo"
+           echo "GIT_ASKPASS=${GIT_ASKPASS}" >> "${GITHUB_ENV}"
+           git config --global "credential.helper" store
+           git config --global "user.email" "AjamX101@gmail.com"
+           git config --global "user.name" "Azathothas"
+           #git config --global "http.postBuffer" "500M"
+           #git config --global "http.maxRequestBuffer" "100M"
+           #git config --global "core.compression" "0"
+          #Login
+           huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+          #Clone
+          pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --depth="1" --filter="blob:none" --no-checkout "https://huggingface.co/datasets/pkgforge/bincache" && cd "./bincache"
+           git sparse-checkout init --cone
+           git sparse-checkout set "" && git checkout
+           TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
+           echo "TOOLPACKS_BIN=${TOOLPACKS_BIN}" >> "${GITHUB_ENV}"
+           git lfs install
+           huggingface-cli lfs-enable-largefiles "."
+          popd >/dev/null 2>&1
+          ##User-Agent
+          USER_AGENT="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/User-Agents/ua_chrome_macos_latest.txt')" && export USER_AGENT="${USER_AGENT}"
+          echo "USER_AGENT=${USER_AGENT}" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - name: Sync (bin.pkgforge.dev/aarch64_arm64_Linux)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+          #DL
+           mkdir -pv "${TOOLPACKS_BIN}/aarch64-Linux"
+           git sparse-checkout set ""
+           git sparse-checkout add "METADATA.json" "aarch64-Linux"
+           git lfs track "aarch64-Linux/**"
+           git sparse-checkout list
+           rclone sync "r2:/bin/aarch64_arm64_Linux/" "${TOOLPACKS_BIN}/aarch64-Linux/." --exclude="*.7z" --exclude="*.gz" --exclude="*.md" --exclude="*.tar" --exclude="*.tgz" --exclude="*.zip" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
+          #Metadata
+           find "${TOOLPACKS_BIN}/aarch64-Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/aarch64_arm64_Linux|https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux|g'
+           find "${TOOLPACKS_BIN}/aarch64-Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+          #Sync
+           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+           git pull origin main --ff-only ; git merge --no-ff -m "Merge & Sync"
+           BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
+          #Commit & Push
+           git branch -a || git show-branch
+           while git ls-files --other | head -n 500 | xargs -I "{}" git add "{}" --verbose && git commit -m "[+] Sync (bin.pkgforge.dev/aarch64-Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]" && git push -u origin main; do sleep 2; done
+           git fetch origin main ; git push origin main
+           git add --all --verbose && git commit -m "[+] Sync (bin.pkgforge.dev/aarch64-Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git fetch origin main ; git push origin main ; git push origin main
+           #sleep "$((RANDOM % 61 + 60))" ; git fetch origin main ; git push origin main
+          popd >/dev/null 2>&1
+        continue-on-error: true
+
+      - name: Sync (bincache.pkgforge.dev/aarch64-Linux)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          dos2unix --quiet "${GITHUB_WORKSPACE}/main/.github/scripts/gen_sync_aarch64-Linux.sh"
+          chmod +x "${GITHUB_WORKSPACE}/main/.github/scripts/gen_sync_aarch64-Linux.sh"
+          export HOST_TRIPLET="aarch64-Linux"
+          bash "${GITHUB_WORKSPACE}/main/.github/scripts/gen_sync_aarch64-Linux.sh"
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+  sync-x86_64-Linux:
+    runs-on: ubuntu-latest
+    if: needs.check_healthcheck_status.outputs.should_run == 'true'
+    needs: [sync-aarch64-Linux]
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      - name: Debloat Runner
+        run: |
+          #Presets
+          set +x ; set +e
+          #--------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+          sudo docker image prune --all --force 2>/dev/null
+          sudo podman image prune --all --force 2>/dev/null
+          sudo rm -rf "/opt/ghc" 2>/dev/null
+          sudo rm -rf "/opt/google" 2>/dev/null
+          sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+          sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+          sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+          sudo rm -rf "/usr/local/n" 2>/dev/null
+          sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+          sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+          sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+          sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+          sudo rm -rf "/home/linuxbrew" 2>/dev/null
+          sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+          sudo rm -rf "/var/lib/gems" 2>/dev/null
+          find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+          df -h "/" 2>/dev/null
+        continue-on-error: true
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc coreutils curl dos2unix fdupes jq git git-lfs moreutils wget util-linux -y -qq
+          sudo apt install 7zip b3sum bc coreutils curl dos2unix fdupes jq git git-lfs moreutils wget util-linux -y -qq
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_dev_tools.sh")
+        continue-on-error: true
+
+      - name: Setup Env
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          #tmp
+          SYSTMP="$(dirname $(mktemp -u))" && export SYSTMP="${SYSTMP}"
+          echo "SYSTMP=${SYSTMP}" >> "${GITHUB_ENV}"
+          #-------------#
+          mkdir -p "${HOME}/bin"
+          ##Setup rClone
+          mkdir -p "${HOME}/.config/rclone"
+          echo "${{ secrets.RCLONE_CF_R2_PUB }}" > "${HOME}/.config/rclone/rclone.conf"
+          export RCLONE_STATS="120s" ; echo "RCLONE_STATS=${RCLONE_STATS}" >> "${GITHUB_ENV}"
+          ##Setup Repo
+           sudo curl -A "${USER_AGENT}" -qfsSL "https://bin.pkgforge.dev/$(uname -m)/huggingface-cli" -o "/usr/local/bin/huggingface-cli" && sudo chmod +x "/usr/local/bin/huggingface-cli"
+          #Configure git
+           sudo apt-get install git-lfs -y -qq
+           export GIT_TERMINAL_PROMPT="0"
+           echo "GIT_TERMINAL_PROMPT=${GIT_TERMINAL_PROMPT}" >> "${GITHUB_ENV}"
+           export GIT_ASKPASS="/bin/echo"
+           echo "GIT_ASKPASS=${GIT_ASKPASS}" >> "${GITHUB_ENV}"
+           git config --global "credential.helper" store
+           git config --global "user.email" "AjamX101@gmail.com"
+           git config --global "user.name" "Azathothas"
+           #git config --global "http.postBuffer" "500M"
+           #git config --global "http.maxRequestBuffer" "100M"
+           #git config --global "core.compression" "0"
+          #Login
+           huggingface-cli login --token "${HF_TOKEN}" --add-to-git-credential
+          #Clone
+          pushd "$(mktemp -d)" >/dev/null 2>&1 && git clone --depth="1" --filter="blob:none" --no-checkout "https://huggingface.co/datasets/pkgforge/bincache" && cd "./bincache"
+           git sparse-checkout init --cone
+           git sparse-checkout set "" && git checkout
+           TOOLPACKS_BIN="$(realpath .)" && export TOOLPACKS_BIN="${TOOLPACKS_BIN}"
+           echo "TOOLPACKS_BIN=${TOOLPACKS_BIN}" >> "${GITHUB_ENV}"
+           git lfs install
+           huggingface-cli lfs-enable-largefiles "."
+          popd >/dev/null 2>&1
+          ##User-Agent
+          USER_AGENT="$(curl -qfsSL 'https://pub.ajam.dev/repos/Azathothas/Wordlists/Misc/User-Agents/ua_chrome_macos_latest.txt')" && export USER_AGENT="${USER_AGENT}"
+          echo "USER_AGENT=${USER_AGENT}" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - name: Sync (bin.pkgforge.dev/x86_64-Linux)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+          #DL
+           mkdir -pv "${TOOLPACKS_BIN}/x86_64-Linux"
+           git sparse-checkout set ""
+           git sparse-checkout add "METADATA.json" "x86_64-Linux"
+           git lfs track "x86_64-Linux/**"
+           git sparse-checkout list
+           rclone sync "r2:/bin/x86_64_Linux/" "${TOOLPACKS_BIN}/x86_64-Linux/." --exclude="*.7z" --exclude="*.gz" --exclude="*.md" --exclude="*.tar" --exclude="*.tgz" --exclude="*.zip" --user-agent="${USER_AGENT}" --s3-upload-concurrency="500" --s3-chunk-size="100M" --multi-thread-streams="500" --checkers="2000" --transfers="1000" --retries="10" --check-first --checksum --copy-links --fast-list --progress ; df -h "/" 2>/dev/null
+          #Metadata
+           find "${TOOLPACKS_BIN}/x86_64-Linux" -type f -name "*.json" -print | xargs realpath | xargs sed -i 's|https://bin.ajam.dev/x86_64_Linux|https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux|g'
+           find "${TOOLPACKS_BIN}/x86_64-Linux" -type f -name "*.json" -print | xargs sed -i -E 's/"download_url": "([^"]*)"/"download_url": "\1?download=true"/'
+          #Sync
+           pushd "${TOOLPACKS_BIN}" >/dev/null 2>&1
+           git pull origin main --ff-only ; git merge --no-ff -m "Merge & Sync"
+           BINDIR_SIZE="$(du -sh "${TOOLPACKS_BIN}" 2>/dev/null | awk '{print $1}' 2>/dev/null)" && export "BINDIR_SIZE=${BINDIR_SIZE}"
+          #Commit & Push
+           git branch -a || git show-branch
+           while git ls-files --other | head -n 500 | xargs -I "{}" git add "{}" --verbose && git commit -m "[+] Sync (bin.pkgforge.dev/x86_64-Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]" && git push -u origin main; do sleep 2; done
+           git add --all --verbose && git commit -m "[+] Sync (bin.pkgforge.dev/x86_64-Linux) [${BINDIR_SIZE}B $(TZ='UTC' date +'%Y_%m_%d')]"
+           git fetch origin main ; git push origin main ; git push origin main
+           #sleep "$((RANDOM % 61 + 60))" ; git fetch origin main ; git push origin main
+          popd >/dev/null 2>&1
+        continue-on-error: true
+
+      - name: Sync (bincache.pkgforge.dev/x86_64-Linux)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          dos2unix --quiet "${GITHUB_WORKSPACE}/main/.github/scripts/gen_sync_x86_64-Linux.sh"
+          chmod +x "${GITHUB_WORKSPACE}/main/.github/scripts/gen_sync_x86_64-Linux.sh"
+          export HOST_TRIPLET="x86_64-Linux"
+          bash "${GITHUB_WORKSPACE}/main/.github/scripts/gen_sync_x86_64-Linux.sh"
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
+#------------------------------------------------------------------------------------#
+  sync-all:
+    runs-on: ubuntu-latest
+    needs: [sync-aarch64-Linux, sync-x86_64-Linux]
+    permissions:
+      contents: write
+          
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          path: main
+          filter: "blob:none"
+
+      #- name: Debloat Runner
+      #  run: |
+      #    #Presets
+      #    set +x ; set +e
+      #    #--------------#
+      #    bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Github/Runners/Ubuntu/debloat.sh")
+      #    sudo docker image prune --all --force 2>/dev/null
+      #    sudo podman image prune --all --force 2>/dev/null
+      #    sudo rm -rf "/opt/ghc" 2>/dev/null
+      #    sudo rm -rf "/opt/google" 2>/dev/null
+      #    sudo rm -rf "/usr/local/share/chromium" 2>/dev/null
+      #    sudo rm -rf "/usr/local/share/vcpkg" 2>/dev/null
+      #    sudo rm -rf "/usr/local/share/edge_driver" 2>/dev/null
+      #    sudo rm -rf "/usr/local/n" 2>/dev/null
+      #    sudo rm -rf "/usr/lib/firefox" 2>/dev/null
+      #    sudo rm -rf "/usr/lib/gradele/"* 2>/dev/null
+      #    sudo rm -rf "/usr/lib/heroku" 2>/dev/null
+      #    sudo rm -rf "/usr/lib/kotlin" 2>/dev/null
+      #    sudo rm -rf "/home/linuxbrew" 2>/dev/null
+      #    sudo rm -rf "/usr/lib/sbt" 2>/dev/null
+      #    sudo rm -rf "/var/lib/gems" 2>/dev/null
+      #    find "/" -type f -path "*/.go" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+      #    find "/" -type f -path "*/.cargo" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+      #    find "/" -type d -path "*/include" -print -exec sudo rm -rf {} 2>/dev/null \; 2>/dev/null
+      #    find "/" -type f -path "*/.rustup" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+      #    find "/" -type f -name "*.a" -print -exec sudo rm -f {} 2>/dev/null \; 2>/dev/null
+      #    df -h "/" 2>/dev/null
+      #  continue-on-error: true
+
+      - name: Install CoreUtils & Deps
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#     
+          export DEBIAN_FRONTEND="noninteractive"
+          sudo apt update -y -qq
+          sudo apt install 7zip b3sum bc coreutils curl dos2unix fdupes jq git git-lfs moreutils wget util-linux -y -qq
+          sudo apt install 7zip b3sum bc coreutils curl dos2unix fdupes jq git git-lfs moreutils wget util-linux -y -qq
+        continue-on-error: true
+
+      - name: Install Addons
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          bash <(curl -qfsSL "https://pub.ajam.dev/repos/Azathothas/Arsenal/misc/Linux/install_dev_tools.sh")
+        continue-on-error: true
+
+      - name: Add to Repo (bin.pkgforge.dev/${ARCH}/METADATA.json)
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          ##Metadata
+          #https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/
+          mkdir -p "${GITHUB_WORKSPACE}/main/aarch64-Linux"
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json?download=true" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json"
+          #https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/
+          mkdir -p "${GITHUB_WORKSPACE}/main/x86_64-Linux"
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json?download=true" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json"
+        continue-on-error: true
+
+      - name: Git Pull
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          cd "${GITHUB_WORKSPACE}/main" && git pull origin main
+        continue-on-error: true
+
+      - name: Get DateTime
+        run: |
+          #presets
+          set +x ; set +e
+          #-------------#
+          NEPALI_TIME="$(TZ='Asia/Kathmandu' date +'%Y-%m-%d (%I:%M:%S %p)')"
+          echo "NEPALI_TIME=${NEPALI_TIME}" >> "${GITHUB_ENV}"
+        continue-on-error: true
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          repository: ./main
+          commit_user_name: Azathothas
+          commit_user_email: AjamX101@gmail.com
+          commit_message: "✅ Updated (Metadata) 🛍️ <-- ${{ env.NEPALI_TIME }} ⌚"
+          #push_options: '--force'
+        continue-on-error: true
+#------------------------------------------------------------------------------------#
