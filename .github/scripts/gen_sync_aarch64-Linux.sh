@@ -159,7 +159,7 @@ if jq --exit-status . "${TMPDIR}/METADATA.json" >/dev/null 2>&1; then
           jq -R . | jq -s .)"
       S_JSON="$(echo "${ITEM}" | jq --argjson snapshots "${SNAPSHOTS}" '.snapshots = $snapshots')"
       echo "${S_JSON}" 2>/dev/null
-      done | jq -s "." > "${TMPDIR}/METADATA.json.bin.snaps"
+      done > "${TMPDIR}/METADATA.json.bin.snaps"
       if jq --exit-status . "${TMPDIR}/METADATA.json.bin.snaps" >/dev/null 2>&1; then
          cat "${TMPDIR}/METADATA.json.bin.snaps" | jq -s '.' > "${TMPDIR}/METADATA.json.bin"
       else
