@@ -1,4 +1,4 @@
 - Automated Importing of [Toolpacks](https://github.com/Azathothas/Toolpacks) binaries to [PkgForge's](https://github.com/pkgforge) [BinCache](https://github.com/pkgforge/bincache) as a temp workaround for https://github.com/pkgforge/bincache/issues/1
 - The cache is usually 1-2 days behind the main bucket. 
 - Upstream Repo: https://huggingface.co/datasets/pkgforge/bincache
-- Status: [![📦♻️ Sync ♻️📦](https://github.com/Azathothas/Toolpacks-BinCache-Importer/actions/workflows/sync.yaml/badge.svg)](https://github.com/Azathothas/Toolpacks-BinCache-Importer/actions/workflows/sync.yaml)
+- Status: [![📦♻️ Import || Sync ♻️📦](https://github.com/Azathothas/Toolpacks-BinCache-Importer/actions/workflows/import_sync.yaml/badge.svg)](https://github.com/Azathothas/Toolpacks-BinCache-Importer/actions/workflows/import_sync.yaml)
