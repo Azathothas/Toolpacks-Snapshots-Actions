@@ -396,10 +396,34 @@ jobs:
           ##Metadata
           #https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/
           mkdir -p "${GITHUB_WORKSPACE}/main/aarch64-Linux"
-          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json?download=true" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json"
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json.bsum" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json.xz" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json.xz" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json.xz.bsum" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json.xz.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json.zstd" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json.zstd" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.json.zstd.bsum" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.json.zstd.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.AIO.json" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.AIO.json" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.AIO.json.bsum" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.AIO.json.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.AIO.json.xz" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.AIO.json.xz" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.AIO.json.xz.bsum" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.AIO.json.xz.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.AIO.json.zstd" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.AIO.json.zstd" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/aarch64-Linux/METADATA.AIO.json.zstd.bsum" -o "${GITHUB_WORKSPACE}/main/aarch64-Linux/METADATA.AIO.json.zstd.bsum" &
+          wait ; ls "${GITHUB_WORKSPACE}/main/aarch64-Linux" -lah
           #https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/
           mkdir -p "${GITHUB_WORKSPACE}/main/x86_64-Linux"
-          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json?download=true" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json"
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json.bsum" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json.xz" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json.xz" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json.xz.bsum" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json.xz.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json.zstd" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json.zstd" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.json.zstd.bsum" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.json.zstd.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.AIO.json" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.AIO.json" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.AIO.json.bsum" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.AIO.json.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.AIO.json.xz" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.AIO.json.xz" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.AIO.json.xz.bsum" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.AIO.json.xz.bsum" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.AIO.json.zstd" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.AIO.json.zstd" &
+          curl -A "${USER_AGENT}" -qfsSL "https://huggingface.co/datasets/pkgforge/bincache/resolve/main/x86_64-Linux/METADATA.AIO.json.zstd.bsum" -o "${GITHUB_WORKSPACE}/main/x86_64-Linux/METADATA.AIO.json.zstd.bsum" &
+          wait ; ls "${GITHUB_WORKSPACE}/main/x86_64-Linux" -lah
         continue-on-error: true
 
       - name: Git Pull
