@@ -153,7 +153,7 @@ if jq --exit-status . "${TMPDIR}/METADATA.json" >/dev/null 2>&1; then
       fi
     #Bin  
      jq -c '.bin[]' "${TMPDIR}/METADATA.json" | while read -r ITEM; do
-      NAME="$(echo "${ITEM}" | jq -r '.name')"
+      NAME="$(echo "${ITEM}" | jq -r '.pkg')"
       SNAPSHOTS="$(git --no-pager log --skip=1 -n 3 "origin/main" --pretty=format:'{"commit":"%H","date":"%cd"}' --date=format:"%Y-%m-%dT%H:%M:%S" -- "${HOST_TRIPLET}/${NAME}" | \
           jq -r --arg host "${HOST_TRIPLET}" --arg name "${NAME}" '"https://huggingface.co/datasets/pkgforge/bincache/resolve/\(.commit)/\($host)/\($name)#[\(.date)]"' | \
           jq -R . | jq -s .)"
