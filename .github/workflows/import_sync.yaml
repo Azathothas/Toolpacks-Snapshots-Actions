@@ -145,7 +145,8 @@ jobs:
           GH_EVENT="${{ github.event_name }}"
           START_TIME="$(date +%s)" && export START_TIME
           echo "GH_EVENT=${GH_EVENT}" >> "${GITHUB_ENV}"
-          echo START_TIME=${START_TIME}" >> "${GITHUB_ENV}"
+          echo "START_TIME=${START_TIME}" >> "${GITHUB_ENV}"
+          rm -rvf "/tmp/PKGFORGE_LOONIX.html" 2>/dev/null
           echo -e "ℹ️ <b>Triggered</b> <a href='https://github.com/Azathothas/Toolpacks-BinCache-Importer/blob/main/.github/workflows/import_sync.yaml'><b>🛍️ 📦♻️ Import || Sync ♻️📦</b></a> <a href='https://huggingface.co/datasets/pkgforge/bincache/tree/main/aarch64-Linux'><b>Pkgforge/Bincache/aarch64-Linux</b></a> [<b><u>$(date --utc +'%Y-%m-%dT%H:%M:%S.%3N') UTC</u></b>]" > "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>Event</u></b>: <code>${GH_EVENT}</code>" >> "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>GH Repo</u></b>: https://github.com/${GITHUB_REPOSITORY}" >> "/tmp/PKGFORGE_LOONIX.html"
@@ -202,7 +203,8 @@ jobs:
           #-------------#
           END_TIME="$(date +%s)" && export END_TIME="${END_TIME}"
           ELAPSED_TIME="$(date -u -d@"$((END_TIME - START_TIME))" "+%H(Hr):%M(Min):%S(Sec)")"
-          echo ELAPSED_TIME=${ELAPSED_TIME}" >> "${GITHUB_ENV}"
+          echo "ELAPSED_TIME=${ELAPSED_TIME}" >> "${GITHUB_ENV}"
+          rm -rvf "/tmp/PKGFORGE_LOONIX.html" 2>/dev/null
           echo -e "ℹ️ <b>Completed</b> <a href='https://github.com/Azathothas/Toolpacks-BinCache-Importer/blob/main/.github/workflows/import_sync.yaml'><b>🛍️ 📦♻️ Import || Sync ♻️📦</b></a> <a href='https://huggingface.co/datasets/pkgforge/bincache/tree/main/aarch64-Linux'><b>Pkgforge/Bincache/aarch64-Linux</b></a> [<b><u>$(date --utc +'%Y-%m-%dT%H:%M:%S.%3N') UTC</u></b>]" > "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>ELAPSED_TIME</u></b>: <code>${ELAPSED_TIME}</code>" >> "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>METADATA</u></b>: https://bincache.pkgforge.dev/aarch64-Linux/METADATA.json"
@@ -329,7 +331,8 @@ jobs:
           GH_EVENT="${{ github.event_name }}"
           START_TIME="$(date +%s)" && export START_TIME
           echo "GH_EVENT=${GH_EVENT}" >> "${GITHUB_ENV}"
-          echo START_TIME=${START_TIME}" >> "${GITHUB_ENV}"
+          echo "START_TIME=${START_TIME}" >> "${GITHUB_ENV}"
+          rm -rvf "/tmp/PKGFORGE_LOONIX.html" 2>/dev/null
           echo -e "ℹ️ <b>Triggered</b> <a href='https://github.com/Azathothas/Toolpacks-BinCache-Importer/blob/main/.github/workflows/import_sync.yaml'><b>🛍️ 📦♻️ Import || Sync ♻️📦</b></a> <a href='https://huggingface.co/datasets/pkgforge/bincache/tree/main/x86_64-Linux'><b>Pkgforge/Bincache/x86_64-Linux</b></a> [<b><u>$(date --utc +'%Y-%m-%dT%H:%M:%S.%3N') UTC</u></b>]" > "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>Event</u></b>: <code>${GH_EVENT}</code>" >> "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>GH Repo</u></b>: https://github.com/${GITHUB_REPOSITORY}" >> "/tmp/PKGFORGE_LOONIX.html"
@@ -385,7 +388,8 @@ jobs:
           #-------------#
           END_TIME="$(date +%s)" && export END_TIME="${END_TIME}"
           ELAPSED_TIME="$(date -u -d@"$((END_TIME - START_TIME))" "+%H(Hr):%M(Min):%S(Sec)")"
-          echo ELAPSED_TIME=${ELAPSED_TIME}" >> "${GITHUB_ENV}"
+          echo "ELAPSED_TIME=${ELAPSED_TIME}" >> "${GITHUB_ENV}"
+          rm -rvf "/tmp/PKGFORGE_LOONIX.html" 2>/dev/null
           echo -e "ℹ️ <b>Completed</b> <a href='https://github.com/Azathothas/Toolpacks-BinCache-Importer/blob/main/.github/workflows/import_sync.yaml'><b>🛍️ 📦♻️ Import || Sync ♻️📦</b></a> <a href='https://huggingface.co/datasets/pkgforge/bincache/tree/main/x86_64-Linux'><b>Pkgforge/Bincache/x86_64-Linux</b></a> [<b><u>$(date --utc +'%Y-%m-%dT%H:%M:%S.%3N') UTC</u></b>]" > "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>ELAPSED_TIME</u></b>: <code>${ELAPSED_TIME}</code>" >> "/tmp/PKGFORGE_LOONIX.html"
           echo -e "<b><u>METADATA</u></b>: https://bincache.pkgforge.dev/x86_64-Linux/METADATA.json" >> "/tmp/PKGFORGE_LOONIX.html"
