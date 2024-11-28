@@ -52,7 +52,7 @@ if [ "$(jq '. | length' "${SYSTMP}/METADATA.json.src")" -gt 1000 ]; then
      .[] | 
      "[[base]]\n" +
      "pkg = \"\(.name)\"\n" +
-     "pkg_family = \"\(.pkg_family // .name | gsub("\\.no_strip"; ""))\"\n" +
+     "pkg_family = \"\( if (.build_script | type) == "string" and (.build_script | length > 0) then (.build_script | split("/") | .[-1] | split(".") | .[0] ) else (.name | gsub("\\.no_strip"; "")) end )\"\n" +
      "pkg_name = \"\(.name | gsub("\\.no_strip"; ""))\"\n" +
      "description = \"\(.description)\"\n" +
      "note = \"\(.note)\"\n" +
@@ -79,7 +79,7 @@ if [ "$(jq '. | length' "${SYSTMP}/METADATA.json.src")" -gt 1000 ]; then
      .[] |
      "[[pkg]]\n" +
      "pkg = \"\(.name)\"\n" +
-     "pkg_family = \"\(.pkg_family // .name)\"\n" +
+     "pkg_family = \"\( if (.build_script | type) == "string" and (.build_script | length > 0) then (.build_script | split("/") | .[-1] | split(".") | .[0] ) else (.name | gsub("\\.no_strip"; "")) end )\"\n" +
      "pkg_id = \"\(.bin_id)\"\n" +
      "pkg_name = \"\(.bin_name)\"\n" +
      "description = \"\(.description)\"\n" +
