@@ -24,6 +24,7 @@ if [ "$(jq '. | length' "${SYSTMP}/METADATA.json.src")" -gt 1000 ]; then
      .[] | 
      "[[bin]]\n" +
      "pkg = \"\(.name)\"\n" +
+     "pkg_family = \"\(.pkg_family // .name | gsub("\\.no_strip"; ""))\"\n" +
      "pkg_name = \"\(.name | gsub("\\.no_strip"; ""))\"\n" +
      "description = \"\(.description)\"\n" +
      "note = \"\(.note)\"\n" +
@@ -51,6 +52,7 @@ if [ "$(jq '. | length' "${SYSTMP}/METADATA.json.src")" -gt 1000 ]; then
      .[] | 
      "[[base]]\n" +
      "pkg = \"\(.name)\"\n" +
+     "pkg_family = \"\(.pkg_family // .name | gsub("\\.no_strip"; ""))\"\n" +
      "pkg_name = \"\(.name | gsub("\\.no_strip"; ""))\"\n" +
      "description = \"\(.description)\"\n" +
      "note = \"\(.note)\"\n" +
@@ -77,6 +79,7 @@ if [ "$(jq '. | length' "${SYSTMP}/METADATA.json.src")" -gt 1000 ]; then
      .[] |
      "[[pkg]]\n" +
      "pkg = \"\(.name)\"\n" +
+     "pkg_family = \"\(.pkg_family // .name)\"\n" +
      "pkg_id = \"\(.bin_id)\"\n" +
      "pkg_name = \"\(.bin_name)\"\n" +
      "description = \"\(.description)\"\n" +
