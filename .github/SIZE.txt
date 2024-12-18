@@ -2,10 +2,10 @@
  13M   ├─┬ x86_64-Linux
 5.9M   │ ├── METADATA.json
 5.9M   │ ├── METADATA.AIO.json
-380K   │ ├── METADATA.json.xz
-380K   │ ├── METADATA.AIO.json.xz
-372K   │ ├── METADATA.json.zstd
-372K   │ ├── METADATA.AIO.json.zstd
+384K   │ ├── METADATA.json.xz
+384K   │ ├── METADATA.AIO.json.xz
+376K   │ ├── METADATA.json.zstd
+376K   │ ├── METADATA.AIO.json.zstd
 4.0K   │ ├── METADATA.json.zstd.bsum
 4.0K   │ ├── METADATA.json.xz.bsum
 4.0K   │ ├── METADATA.json.bsum
